@@ -1,0 +1,4 @@
+﻿* @team-platform
+/services/ @team-services
+/packages/ @team-packages
+/tools/ @team-platform
