@@ -11,23 +11,20 @@
 2. 形成最小变更方案
 3. 先改测试再改实现（可行时）
 4. 优先在 Dev Container 中执行最小验证
-5. 输出：变更、验证、风险、后续建议
+5. 涉及结构调整时，同时更新 BUILD、模块路径、CI/部署与文档
+6. 输出：变更、验证、风险、后续建议
 
 ## 环境约束
 - 默认不要求本机安装 Go/Rust/Bazel
 - 验证命令优先通过容器执行
 
 ## Monorepo 约束
-- services: 应用与服务（按 Domain -> Group 分层，例如 `services/hello_world/go/hello`）
+- services: 应用与服务，按 Domain -> Group 分层，例如 `services/hello_world/go/hello`
 - packages: 复用库
 - tools: 工具与脚本
 - 跨目录依赖需说明原因
 - 新增依赖优先走 Bazel 规则管理
-
-## 迁移说明
-- 新的目录规范采用 `Domain`（业务域）为顶层，Domain 下以 `Group`（语言/平台/团队/部署单元）组织实现。
-- 示例：`services/hello_world/go/hello`、`services/hello_world/rust/hello`。
-- 迁移流程：试点迁移 -> 更新 BUILD/模块路径 -> 修正 CI/部署 -> 验证并分批推进。
+- 目录调整默认采用渐进式迁移：先试点，再分批推进，并保留明确回滚路径
 
 ## 输出格式
 - 先结论，后细节
