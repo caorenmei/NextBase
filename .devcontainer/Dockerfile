@@ -33,7 +33,8 @@ RUN set -eux; \
             echo "apt-get update failed, retry $i/$retries"; \
             sleep 5; \
         done; \
-        apt-get install -y --no-install-recommends curl git unzip zip build-essential pkg-config libssl-dev ca-certificates; \
+        apt-get install -y --no-install-recommends curl git unzip zip build-essential pkg-config libssl-dev ca-certificates nodejs npm; \
+        npm install -g typescript; \
         rm -rf /var/lib/apt/lists/*
 
 RUN curl -fsSL ${GO_DOWNLOAD_URL} -o /tmp/go.tgz \
@@ -44,6 +45,12 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
+    && bash /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet \
+    && ln -sf /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
+    && rm -f /tmp/dotnet-install.sh
+ENV DOTNET_ROOT="/usr/share/dotnet"
 
 RUN curl -fsSL https://github.com/bazelbuild/bazelisk/releases/download/v1.22.0/bazelisk-linux-amd64 -o /usr/local/bin/bazel \
     && chmod +x /usr/local/bin/bazel

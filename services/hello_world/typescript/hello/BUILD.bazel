@@ -1,0 +1,26 @@
+sh_binary(
+    name = "hello",
+    srcs = ["run.sh"],
+    data = [
+        "main.ts",
+        "tsconfig.json",
+    ],
+    args = [
+        "$(location main.ts)",
+        "$(location tsconfig.json)",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "hello_test",
+    srcs = ["smoke_test.sh"],
+    data = [
+        "main.ts",
+        "tsconfig.json",
+    ],
+    args = [
+        "$(location main.ts)",
+        "$(location tsconfig.json)",
+    ],
+)
