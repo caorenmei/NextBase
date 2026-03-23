@@ -18,11 +18,16 @@
 - 验证命令优先通过容器执行
 
 ## Monorepo 约束
-- services: 应用与服务
+- services: 应用与服务（按 Domain -> Group 分层，例如 `services/hello_world/go/hello`）
 - packages: 复用库
 - tools: 工具与脚本
 - 跨目录依赖需说明原因
 - 新增依赖优先走 Bazel 规则管理
+
+## 迁移说明
+- 新的目录规范采用 `Domain`（业务域）为顶层，Domain 下以 `Group`（语言/平台/团队/部署单元）组织实现。
+- 示例：`services/hello_world/go/hello`、`services/hello_world/rust/hello`。
+- 迁移流程：试点迁移 -> 更新 BUILD/模块路径 -> 修正 CI/部署 -> 验证并分批推进。
 
 ## 输出格式
 - 先结论，后细节
