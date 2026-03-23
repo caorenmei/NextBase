@@ -15,16 +15,15 @@
 6. 输出：变更、验证、风险、后续建议
 
 ## 环境约束
-- 默认不要求本机安装 Go/Rust/Bazel
+- 默认不要求本机安装依赖
 - 验证命令优先通过容器执行
 
 ## Monorepo 约束
-- services: 应用与服务，按 Domain -> Group 分层，例如 `services/hello_world/go/hello`
+- services: 应用与服务，按 Domain -> Group 分层，例如 `services/hello_world/{go,rust,cpp,csharp,typescript}/hello`
 - packages: 复用库
 - tools: 工具与脚本
 - 跨目录依赖需说明原因
 - 新增依赖优先走 Bazel 规则管理
- 
 
 ## 输出格式
 - 先结论，后细节

@@ -39,4 +39,7 @@ jobs:
               bazel build //...; \
               bazel test //...; \
               bazel run //services/hello_world/go/hello:hello; \
-              bazel run //services/hello_world/rust/hello:hello"
+              bazel run //services/hello_world/rust/hello:hello; \
+              bazel run //services/hello_world/cpp/hello:hello; \
+              bazel run //services/hello_world/csharp/hello:hello; \
+              bazel run //services/hello_world/typescript/hello:hello"

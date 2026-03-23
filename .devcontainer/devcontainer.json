@@ -22,10 +22,11 @@
         "bazelbuild.vscode-bazel",
         "golang.go",
         "rust-lang.rust-analyzer",
+        "ms-dotnettools.csharp",
         "github.copilot",
         "github.copilot-chat"
       ]
     }
   },
-  "postCreateCommand": "go version; rustc --version; bazel --version"
+  "postCreateCommand": "go version; rustc --version; g++ --version | head -n 1; node --version; tsc --version; dotnet --version; bazel --version"
 }

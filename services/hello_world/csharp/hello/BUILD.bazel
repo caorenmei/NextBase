@@ -1,0 +1,20 @@
+sh_binary(
+    name = "hello",
+    srcs = ["run.sh"],
+    data = [
+        "Program.cs",
+        "hello.csproj",
+    ],
+    args = ["$(location hello.csproj)"],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "hello_test",
+    srcs = ["smoke_test.sh"],
+    data = [
+        "Program.cs",
+        "hello.csproj",
+    ],
+    args = ["$(location hello.csproj)"],
+)

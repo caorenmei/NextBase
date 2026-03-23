@@ -5,10 +5,13 @@
 2. 执行：
    - bazel run //services/hello_world/go/hello:hello
    - bazel run //services/hello_world/rust/hello:hello
+   - bazel run //services/hello_world/cpp/hello:hello
+   - bazel run //services/hello_world/csharp/hello:hello
+   - bazel run //services/hello_world/typescript/hello:hello
    - bazel test //...
 
 ## 验证方式（容器优先）
-- 不依赖本机 Go/Rust/Bazel 安装
+- 不依赖本机 Go/Rust/C++/Node.js/.NET/Bazel 安装
 - 使用脚本在 Dev Container 镜像中执行：
    - powershell -ExecutionPolicy Bypass -File tools/scripts/verify.ps1
 - 中国大陆网络建议：
@@ -37,6 +40,7 @@ setx DEV_CONTAINER_APT_MIRROR "mirrors.tuna.tsinghua.edu.cn"
 
 ## 目录
 - services: 按 Domain（业务域）组织的可部署服务/应用（示例：hello_world / billing / user）
+- hello_world 目前包含 go、rust、cpp、csharp、typescript 五个示例服务
 - packages: 可复用包
 - tools: 工具与脚本
 - bazel: Bazel 公共宏与规则封装
