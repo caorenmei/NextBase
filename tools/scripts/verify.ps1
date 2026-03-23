@@ -2,7 +2,7 @@
     [switch]$NoBuild,
     [string]$ImageName = "nextbase-dev",
     [string]$ProxyUrl = "",
-    [string]$AptMirror = "mirrors.tuna.tsinghua.edu.cn"
+    [string]$AptMirror = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -20,27 +20,53 @@ $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 
 $resolvedProxy = $ProxyUrl
 if ([string]::IsNullOrWhiteSpace($resolvedProxy)) {
-    $resolvedProxy = $env:HTTP_PROXY
+    $resolvedProxy = $env:DEV_CONTAINER_HTTP_PROXY
 }
 if ([string]::IsNullOrWhiteSpace($resolvedProxy)) {
-    $resolvedProxy = "http://host.docker.internal:1080"
+    $resolvedProxy = $env:HTTP_PROXY
 }
 
-$resolvedNoProxy = $env:NO_PROXY
+$resolvedHttpsProxy = $env:DEV_CONTAINER_HTTPS_PROXY
+if ([string]::IsNullOrWhiteSpace($resolvedHttpsProxy)) {
+    $resolvedHttpsProxy = $env:HTTPS_PROXY
+}
+if ([string]::IsNullOrWhiteSpace($resolvedHttpsProxy)) {
+    $resolvedHttpsProxy = $resolvedProxy
+}
+
+$resolvedNoProxy = $env:DEV_CONTAINER_NO_PROXY
+if ([string]::IsNullOrWhiteSpace($resolvedNoProxy)) {
+    $resolvedNoProxy = $env:NO_PROXY
+}
 if ([string]::IsNullOrWhiteSpace($resolvedNoProxy)) {
     $resolvedNoProxy = "localhost,127.0.0.1,host.docker.internal"
 }
 
-Write-Host "[verify] 代理: $resolvedProxy"
+if ([string]::IsNullOrWhiteSpace($AptMirror)) {
+    $AptMirror = $env:DEV_CONTAINER_APT_MIRROR
+}
+if ([string]::IsNullOrWhiteSpace($AptMirror)) {
+    $AptMirror = "mirrors.tuna.tsinghua.edu.cn"
+}
+
+Write-Host "[verify] HTTP代理: $resolvedProxy"
+Write-Host "[verify] HTTPS代理: $resolvedHttpsProxy"
+Write-Host "[verify] NO_PROXY: $resolvedNoProxy"
 Write-Host "[verify] APT镜像: $AptMirror"
 
 Write-Host "[verify] 构建 Dev Container 镜像: $ImageName"
-docker build `
-  --build-arg HTTP_PROXY=$resolvedProxy `
-  --build-arg HTTPS_PROXY=$resolvedProxy `
-  --build-arg NO_PROXY=$resolvedNoProxy `
-  --build-arg APT_MIRROR=$AptMirror `
-  -f (Join-Path $repoRoot ".devcontainer\Dockerfile") -t $ImageName $repoRoot
+$dockerBuildArgs = @(
+    "build",
+    "--build-arg", "NO_PROXY=$resolvedNoProxy",
+    "--build-arg", "APT_MIRROR=$AptMirror",
+    "-f", (Join-Path $repoRoot ".devcontainer\Dockerfile"),
+    "-t", $ImageName,
+    $repoRoot
+)
+if (-not [string]::IsNullOrWhiteSpace($resolvedProxy)) {
+    $dockerBuildArgs = @("build", "--build-arg", "HTTP_PROXY=$resolvedProxy", "--build-arg", "HTTPS_PROXY=$resolvedHttpsProxy") + $dockerBuildArgs[1..($dockerBuildArgs.Count - 1)]
+}
+docker @dockerBuildArgs
 if ($LASTEXITCODE -ne 0) {
     throw "Dev Container 镜像构建失败。"
 }
@@ -52,14 +78,31 @@ if (-not $NoBuild) {
 $buildAndTest += "bazel test //..."
 
 Write-Host "[verify] 在容器中执行 Bazel 验证"
-docker run --rm `
-    -e HTTP_PROXY=$resolvedProxy `
-    -e HTTPS_PROXY=$resolvedProxy `
-    -e NO_PROXY=$resolvedNoProxy `
-    -e http_proxy=$resolvedProxy `
-    -e https_proxy=$resolvedProxy `
-    -e no_proxy=$resolvedNoProxy `
-    -v "${repoRoot}:/workspaces/NextBase" -w /workspaces/NextBase $ImageName bash -lc $buildAndTest
+$dockerRunArgs = @(
+    "run", "--rm",
+    "-e", "NO_PROXY=$resolvedNoProxy",
+    "-e", "no_proxy=$resolvedNoProxy",
+    "-v", "${repoRoot}:/workspaces/NextBase",
+    "-w", "/workspaces/NextBase",
+    $ImageName,
+    "bash", "-lc", $buildAndTest
+)
+if (-not [string]::IsNullOrWhiteSpace($resolvedProxy)) {
+    $dockerRunArgs = @(
+        "run", "--rm",
+        "-e", "HTTP_PROXY=$resolvedProxy",
+        "-e", "HTTPS_PROXY=$resolvedHttpsProxy",
+        "-e", "http_proxy=$resolvedProxy",
+        "-e", "https_proxy=$resolvedHttpsProxy",
+        "-e", "NO_PROXY=$resolvedNoProxy",
+        "-e", "no_proxy=$resolvedNoProxy",
+        "-v", "${repoRoot}:/workspaces/NextBase",
+        "-w", "/workspaces/NextBase",
+        $ImageName,
+        "bash", "-lc", $buildAndTest
+    )
+}
+docker @dockerRunArgs
 if ($LASTEXITCODE -ne 0) {
     throw "容器内 Bazel 验证失败。"
 }
