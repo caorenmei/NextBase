@@ -3,8 +3,8 @@
 ## 快速开始
 1. 使用 Dev Container 打开仓库
 2. 执行：
-   - bazel run //services/go/hello:hello
-   - bazel run //services/rust/hello:hello
+   - bazel run //services/hello_world/go/hello:hello
+   - bazel run //services/hello_world/rust/hello:hello
    - bazel test //...
 
 ## 验证方式（容器优先）
@@ -36,7 +36,7 @@ setx DEV_CONTAINER_APT_MIRROR "mirrors.tuna.tsinghua.edu.cn"
 重启 VS Code（确保 Dev Containers 扩展读取到新的宿主环境变量），然后使用 `Dev Containers: Reopen in Container` 来重建/启动容器。
 
 ## 目录
-- services: 可部署服务/应用
+- services: 按 Domain（业务域）组织的可部署服务/应用（示例：hello_world / billing / user）
 - packages: 可复用包
 - tools: 工具与脚本
 - bazel: Bazel 公共宏与规则封装
