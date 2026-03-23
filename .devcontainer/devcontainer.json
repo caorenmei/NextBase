@@ -1,4 +1,4 @@
-﻿{
+{
   "$schema": "./devcontainer.schema.json",
   "name": "nextbase-dev",
   "build": {
