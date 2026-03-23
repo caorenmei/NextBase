@@ -17,6 +17,24 @@
    - 可显式指定：
      - powershell -ExecutionPolicy Bypass -File tools/scripts/verify.ps1 -ProxyUrl "http://host.docker.internal:1080" -AptMirror "mirrors.tuna.tsinghua.edu.cn"
 
+## Dev Container 环境变量
+在使用 Dev Container 启动项目时，可以通过以下环境变量配置代理和 APT 源（可在宿主或 VS Code 启动前导出）：
+
+- **DEV_CONTAINER_HTTP_PROXY**: http://host.docker.internal:1080
+- **DEV_CONTAINER_HTTPS_PROXY**: http://host.docker.internal:1080
+- **DEV_CONTAINER_NO_PROXY**: localhost,127.0.0.1,host.docker.internal
+- **DEV_CONTAINER_APT_MIRROR**: mirrors.tuna.tsinghua.edu.cn
+
+示例（Windows PowerShell）:
+```powershell
+setx DEV_CONTAINER_HTTP_PROXY "http://host.docker.internal:1080"
+setx DEV_CONTAINER_HTTPS_PROXY "http://host.docker.internal:1080"
+setx DEV_CONTAINER_NO_PROXY "localhost,127.0.0.1,host.docker.internal"
+setx DEV_CONTAINER_APT_MIRROR "mirrors.tuna.tsinghua.edu.cn"
+```
+
+重启 VS Code（确保 Dev Containers 扩展读取到新的宿主环境变量），然后使用 `Dev Containers: Reopen in Container` 来重建/启动容器。
+
 ## 目录
 - services: 可部署服务/应用
 - packages: 可复用包
