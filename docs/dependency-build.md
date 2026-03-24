@@ -1,8 +1,3 @@
----
-name: dependency-build
-description: Use when the task involves build metadata, dependency graph correctness, target granularity, cache hit rate, or build and test verification.
----
-
 # 依赖构建
 
 ## 何时使用
@@ -36,6 +31,5 @@ description: Use when the task involves build metadata, dependency graph correct
 - 报告已执行命令与未验证覆盖面。
 
 ## 补充说明
-- 这个技能用于处理构建元数据、依赖图正确性、目标粒度、缓存命中率和构建验证。
+- 本文档用于处理构建元数据、依赖图正确性、目标粒度、缓存命中率和构建验证。
 - 修改依赖或目标时，优先让目标边界与目录边界尽量一致，减少横向耦合和不必要重建。
-- 中文说明保留在正文中；`name` 和 `description` 保持英文，方便跨工具发现和复用。
