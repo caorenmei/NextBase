@@ -1,21 +1,15 @@
-# syntax=docker/dockerfile:1.7-labs
 FROM mcr.microsoft.com/devcontainers/base:ubuntu
 
+ARG USE_PROXY
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
-ARG APT_MIRROR=mirrors.tuna.tsinghua.edu.cn
+ARG APT_MIRROR
 ARG GO_DOWNLOAD_URL=https://go.dev/dl/go1.23.6.linux-amd64.tar.gz
 ARG RUSTUP_DIST_SERVER=https://static.rust-lang.org
 ARG RUSTUP_UPDATE_ROOT=https://static.rust-lang.org/rustup
 ARG RUST_VERSION=1.83.0
 
-ENV HTTP_PROXY=${HTTP_PROXY}
-ENV HTTPS_PROXY=${HTTPS_PROXY}
-ENV NO_PROXY=${NO_PROXY}
-ENV http_proxy=${HTTP_PROXY}
-ENV https_proxy=${HTTPS_PROXY}
-ENV no_proxy=${NO_PROXY}
 ENV RUSTUP_DIST_SERVER=${RUSTUP_DIST_SERVER}
 ENV RUSTUP_UPDATE_ROOT=${RUSTUP_UPDATE_ROOT}
 ENV RUSTUP_HOME=/usr/local/rustup
@@ -23,17 +17,30 @@ ENV CARGO_HOME=/usr/local/cargo
 ENV PATH="/usr/local/cargo/bin:/usr/local/go/bin:${PATH}"
 
 RUN set -eux; \
-    if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then \
-        sed -i "s|http://archive.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list.d/ubuntu.sources; \
-        sed -i "s|http://security.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list.d/ubuntu.sources; \
-    else \
-        sed -i "s|http://archive.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list; \
-        sed -i "s|http://security.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list; \
+    if [ -n "${USE_PROXY}" ] && [ -n "${APT_MIRROR}" ]; then \
+        if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then \
+            sed -i "s|http://archive.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list.d/ubuntu.sources; \
+            sed -i "s|http://security.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list.d/ubuntu.sources; \
+            sed -i "s|https://archive.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list.d/ubuntu.sources; \
+            sed -i "s|https://security.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list.d/ubuntu.sources; \
+        else \
+            sed -i "s|http://archive.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list; \
+            sed -i "s|http://security.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list; \
+            sed -i "s|https://archive.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list; \
+            sed -i "s|https://security.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list; \
+        fi; \
+        printf \
+            'Acquire::http::Proxy::${APT_MIRROR} DIRECT;\n' \
+            'Acquire::https::Proxy::${APT_MIRROR} DIRECT;\n' \
+            > /etc/apt/apt.conf.d/99no-proxy; \
     fi
 
-RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt \
-    set -eux; \
+RUN set -eux; \
+        if [ -n "${USE_PROXY}" ]; then \
+            export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
+            export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
+        fi; \
+        apt-config dump | grep -i Proxy && env | grep -i PROXY || true; \
         retries=5; \
         for i in $(seq 1 $retries); do \
             apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30 update && break; \
@@ -44,19 +51,54 @@ RUN --mount=type=cache,target=/var/cache/apt \
         npm install -g typescript; \
         rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL ${GO_DOWNLOAD_URL} -o /tmp/go.tgz \
+RUN set -eux; \
+    if [ -n "${USE_PROXY}" ]; then \
+        export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
+        export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
+    fi; \
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg; \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list; \
+    apt-get update; \
+    apt-get install -y --no-install-recommends gh; \
+    rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    if [ -n "${USE_PROXY}" ]; then \
+        export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
+        export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
+    fi; \
+    curl -fsSL ${GO_DOWNLOAD_URL} -o /tmp/go.tgz \
     && rm -rf /usr/local/go \
     && tar -C /usr/local -xzf /tmp/go.tgz \
     && rm -f /tmp/go.tgz
 
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --default-toolchain ${RUST_VERSION} --no-modify-path \
+RUN set -eux; \
+    if [ -n "${USE_PROXY}" ]; then \
+        export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
+        export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
+    fi; \
+    curl https://sh.rustup.rs -sSf -o /tmp/sh.rustup.rs \
+    && sh /tmp/sh.rustup.rs -y --profile minimal --default-toolchain ${RUST_VERSION} --no-modify-path \
+    && rm -f /tmp/sh.rustup.rs \
     && chmod -R a+rX /usr/local/rustup /usr/local/cargo
 
-RUN curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
+RUN set -eux; \
+    if [ -n "${USE_PROXY}" ]; then \
+        export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
+        export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
+    fi; \
+    curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && bash /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet \
     && ln -sf /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
     && rm -f /tmp/dotnet-install.sh
 ENV DOTNET_ROOT="/usr/share/dotnet"
 
-RUN curl -fsSL https://github.com/bazelbuild/bazelisk/releases/download/v1.22.0/bazelisk-linux-amd64 -o /usr/local/bin/bazel \
+RUN set -eux; \
+    if [ -n "${USE_PROXY}" ]; then \
+        export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
+        export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
+    fi; \
+    curl -fsSL https://github.com/bazelbuild/bazelisk/releases/download/v1.22.0/bazelisk-linux-amd64 -o /tmp/bazelisk-linux-amd64 \
+    && cp /tmp/bazelisk-linux-amd64 /usr/local/bin/bazel \
+    && rm -f /tmp/bazelisk-linux-amd64 \
     && chmod +x /usr/local/bin/bazel
