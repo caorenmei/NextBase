@@ -76,3 +76,20 @@ setx DEV_CONTAINER_APT_MIRROR "mirrors.tuna.tsinghua.edu.cn"
 - tools: 工具与脚本
 - bazel: Bazel 公共宏与规则封装
 - agent: Code Agent 统一规则
+
+## Code Agent Skills
+- Skills 放置于 `.skills/`，用于把仓库实践拆成按需加载的领域能力，而不是把所有规则都堆进全局说明。
+- `development-environment`：处理 Dev Container、一致性、缓存加速、代理镜像与容器安全。
+- `dependency-build`：处理 `BUILD.bazel`、`MODULE.bazel`、依赖图谱正确性、目标粒度与缓存命中率。
+- `architecture-planning`：处理目录落点、跨目录依赖、服务与包边界，防止 Monorepo 演变成“大泥潭”。
+- 这些 Skill 应与 `agent/agent-core.md` 配合使用：全局规则留在 core，任务域知识下沉到对应 Skill。
+
+### 何时让 Agent 使用对应 Skill
+- 涉及 `.devcontainer/`、`.bazelrc`、代理、缓存、镜像层、安全收敛时，优先使用 `development-environment`。
+- 涉及 `BUILD.bazel`、`MODULE.bazel`、锁文件、构建性能与测试命令时，优先使用 `dependency-build`。
+- 涉及新目录、新服务、新共享库、边界调整或跨目录依赖治理时，优先使用 `architecture-planning`。
+
+### Skill 使用原则
+- 先读 Skill，再形成最小变更方案。
+- Skill 只提供任务域流程与检查清单，不替代实际验证。
+- 涉及结构调整时，同时更新 BUILD、模块路径、CI/部署与文档。
