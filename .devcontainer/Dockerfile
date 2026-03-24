@@ -36,10 +36,6 @@ RUN set -eux; \
     fi
 
 RUN set -eux; \
-        if [ -n "${USE_PROXY}" ]; then \
-            export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
-            export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
-        fi; \
         apt-config dump | grep -i Proxy && env | grep -i PROXY || true; \
         retries=5; \
         for i in $(seq 1 $retries); do \
@@ -52,10 +48,6 @@ RUN set -eux; \
         rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
-    if [ -n "${USE_PROXY}" ]; then \
-        export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
-        export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
-    fi; \
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg; \
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list; \
     apt-get update; \
@@ -63,30 +55,18 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 RUN set -eux; \
-    if [ -n "${USE_PROXY}" ]; then \
-        export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
-        export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
-    fi; \
     curl -fsSL ${GO_DOWNLOAD_URL} -o /tmp/go.tgz \
     && rm -rf /usr/local/go \
     && tar -C /usr/local -xzf /tmp/go.tgz \
     && rm -f /tmp/go.tgz
 
 RUN set -eux; \
-    if [ -n "${USE_PROXY}" ]; then \
-        export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
-        export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
-    fi; \
     curl https://sh.rustup.rs -sSf -o /tmp/sh.rustup.rs \
     && sh /tmp/sh.rustup.rs -y --profile minimal --default-toolchain ${RUST_VERSION} --no-modify-path \
     && rm -f /tmp/sh.rustup.rs \
     && chmod -R a+rX /usr/local/rustup /usr/local/cargo
 
 RUN set -eux; \
-    if [ -n "${USE_PROXY}" ]; then \
-        export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
-        export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
-    fi; \
     curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh \
     && bash /tmp/dotnet-install.sh --channel 8.0 --install-dir /usr/share/dotnet \
     && ln -sf /usr/share/dotnet/dotnet /usr/local/bin/dotnet \
@@ -94,10 +74,6 @@ RUN set -eux; \
 ENV DOTNET_ROOT="/usr/share/dotnet"
 
 RUN set -eux; \
-    if [ -n "${USE_PROXY}" ]; then \
-        export HTTP_PROXY="${HTTP_PROXY}" HTTPS_PROXY="${HTTPS_PROXY}" NO_PROXY="${NO_PROXY}"; \
-        export http_proxy="${HTTP_PROXY}" https_proxy="${HTTPS_PROXY}" no_proxy="${NO_PROXY}"; \
-    fi; \
     curl -fsSL https://github.com/bazelbuild/bazelisk/releases/download/v1.22.0/bazelisk-linux-amd64 -o /tmp/bazelisk-linux-amd64 \
     && cp /tmp/bazelisk-linux-amd64 /usr/local/bin/bazel \
     && rm -f /tmp/bazelisk-linux-amd64 \
