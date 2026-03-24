@@ -17,11 +17,13 @@
 ## 环境约束
 - 默认不要求本机安装依赖
 - 验证命令优先通过容器执行
+- Dev Container 优先持久化 Bazel 与语言包管理缓存，避免重建重复下载
 
 ## Monorepo 约束
 - services: 应用与服务，按 Domain -> Group 分层，例如 `services/hello_world/{go,rust,cpp,csharp,typescript}/hello`
 - packages: 复用库
 - tools: 工具与脚本
+- 仓库默认只提交源码与资源，构建产物、IDE 本地文件、临时方案文件应缩小作用域并加入忽略规则
 - 跨目录依赖需说明原因
 - 新增依赖优先走 Bazel 规则管理
 

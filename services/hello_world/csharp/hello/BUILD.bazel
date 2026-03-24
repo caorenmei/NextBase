@@ -2,7 +2,7 @@ sh_binary(
     name = "hello",
     srcs = ["run.sh"],
     data = [
-        "Program.cs",
+        "src/Program.cs",
         "hello.csproj",
     ],
     args = ["$(location hello.csproj)"],
@@ -13,7 +13,7 @@ sh_test(
     name = "hello_test",
     srcs = ["smoke_test.sh"],
     data = [
-        "Program.cs",
+        "src/Program.cs",
         "hello.csproj",
     ],
     args = ["$(location hello.csproj)"],
