@@ -3,39 +3,39 @@ name: dependency-build
 description: Use when the task involves build metadata, dependency graph correctness, target granularity, cache hit rate, or build and test verification.
 ---
 
-# Dependency Build
+# 依赖构建
 
-## When to use
-- Add, split, or update build targets and dependency declarations.
-- Fix graph correctness issues (missing/extra deps, wrong target boundaries).
-- Improve incremental build behavior and cache hit rates.
-- Align local build behavior with CI build behavior.
+## 何时使用
+- 新增、拆分或调整构建目标与依赖声明时。
+- 修复图谱正确性问题（缺失/冗余依赖、目标边界错误）时。
+- 优化增量构建行为和缓存命中率时。
+- 对齐本地构建行为与 CI 构建行为时。
 
-## Core workflow
-1. Read affected build metadata and root-level build configuration first.
-2. Separate graph-definition issues from toolchain/runtime issues.
-3. Keep targets single-purpose with clear inputs and outputs.
-4. Prefer explicit direct dependencies over broad aggregate dependencies.
-5. Validate changed targets first, then expand to wider scope if impact is broad.
+## 核心流程
+1. 先阅读受影响构建元数据与根级构建配置。
+2. 区分图谱定义问题与工具链/运行时问题。
+3. 保持目标单一职责并明确输入输出。
+4. 优先显式直接依赖，避免过宽的聚合依赖。
+5. 先验证受影响目标，影响面较大时再扩大验证范围。
 
-## Graph and granularity rules
-- Keep dependency edges minimal and intentional.
-- Avoid oversized shared targets that force unnecessary rebuilds.
-- Split libraries/tests where it improves cache reuse and ownership clarity.
-- Document cross-boundary dependencies and justify why they are necessary.
-- Keep build metadata and lockfiles consistent after dependency changes.
+## 图谱与粒度规则
+- 依赖边保持最小且有明确意图。
+- 避免过大的共享目标触发不必要重建。
+- 在能提升缓存复用与所有权清晰度时拆分库/测试目标。
+- 跨边界依赖需记录并说明必要性。
+- 依赖变更后保持构建元数据与锁文件一致。
 
-## Validation examples
-- Graph query/check command(s) for the project build system.
-- Build/test for affected targets.
-- Full-suite build/test when changing shared rules or root dependencies.
+## 验证示例
+- 项目构建系统的图谱查询/检查命令。
+- 受影响目标的构建/测试。
+- 修改共享规则或根依赖时执行全量构建/测试。
 
-## Output expectations
-- Summarize changed targets, dependency edges, and lockfile impact.
-- Explain expected effect on graph correctness and cache efficiency.
-- Report commands executed and unverified coverage.
+## 输出要求
+- 汇总变更目标、依赖边及锁文件影响。
+- 说明对图谱正确性与缓存效率的预期效果。
+- 报告已执行命令与未验证覆盖面。
 
-## 中文说明
+## 补充说明
 - 这个技能用于处理构建元数据、依赖图正确性、目标粒度、缓存命中率和构建验证。
 - 修改依赖或目标时，优先让目标边界与目录边界尽量一致，减少横向耦合和不必要重建。
 - 中文说明保留在正文中；`name` 和 `description` 保持英文，方便跨工具发现和复用。
