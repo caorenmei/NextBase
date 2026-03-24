@@ -42,6 +42,13 @@
 - Bazel 磁盘缓存：`$HOME/.cache/bazel/disk`
 - Bazel 输出根目录：`$HOME/.cache/bazel/output_user_root`
 - Go/Rust/NuGet/NPM 缓存：通过 Dev Container `mounts` 持久化到命名卷
+- Dev Container 镜像构建：已启用 BuildKit 缓存挂载（APT/NPM 与常见下载脚本/二进制），可显著减少重复下载
+
+### 团队约定：BuildKit 加速构建
+- 默认通过 Dev Containers 重建，使用 Docker BuildKit（Docker Desktop / 新版 Docker Engine 通常默认开启）
+- 手动构建时建议显式开启：`DOCKER_BUILDKIT=1 docker build -f .devcontainer/Dockerfile .`
+- 如需查看详细构建过程可加：`--progress=plain`
+- 当下载内容异常或怀疑缓存污染时，可先执行 `docker builder prune`（会清理 BuildKit 构建缓存）再重建
 
 如果需要清理缓存并做一次完全冷启动，可在宿主机执行：
 - `docker volume rm nextbase-bazel-cache nextbase-bazelisk-cache nextbase-go-mod-cache nextbase-go-build-cache nextbase-cargo-registry-cache nextbase-cargo-git-cache nextbase-nuget-cache nextbase-npm-cache`
