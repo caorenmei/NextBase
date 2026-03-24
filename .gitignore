@@ -1,3 +1,27 @@
 ﻿bazel-*
+.bazel/
 *.log
 .DS_Store
+
+# IDE local files
+.vscode/*
+!.vscode/settings.json
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln
+
+# Build outputs
+bin/
+obj/
+dist/
+
+# Language/package caches
+.nuget/
+.npm/
+.pnpm-store/
+
+# Local workspace-only files
+**/.local/
+${HOME}/

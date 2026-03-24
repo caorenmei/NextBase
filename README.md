@@ -1,5 +1,12 @@
 ﻿# Monorepo: Container Dev + Bazel + Code Agent
 
+## 设计目标
+- 可复现：固定 Bazel 版本与 Bzlmod 锁文件，默认严格锁定依赖解析
+- 快速启动：Dev Container 使用命名卷持久化 Bazel/Go/Rust/NuGet/NPM 缓存，减少重建后的重复下载
+- 编辑器友好：默认隐藏 Bazel 软链接与构建产物目录，降低索引噪声
+- 团队友好：共享最小 VS Code 配置，避免个人本地配置污染仓库
+- 安全：默认仅提交源码与资源文件，构建产物和本地临时文件不入库
+
 ## 快速开始
 1. 使用 Dev Container 打开仓库
 2. 执行：
@@ -9,6 +16,8 @@
    - bazel run //services/hello_world/csharp/hello:hello
    - bazel run //services/hello_world/typescript/hello:hello
    - bazel test //...
+
+首次冷启动会下载依赖；后续重建容器时将复用命名卷缓存，速度显著提升。
 
 ## 验证方式（容器优先）
 - 不依赖本机 Go/Rust/C++/Node.js/.NET/Bazel 安装
@@ -28,6 +37,15 @@
 - **DEV_CONTAINER_NO_PROXY**: localhost,127.0.0.1,host.docker.internal
 - **DEV_CONTAINER_APT_MIRROR**: mirrors.tuna.tsinghua.edu.cn
 
+## 缓存与重建加速
+- Bazel 仓库缓存：`$HOME/.cache/bazel/repository`
+- Bazel 磁盘缓存：`$HOME/.cache/bazel/disk`
+- Bazel 输出根目录：`$HOME/.cache/bazel/output_user_root`
+- Go/Rust/NuGet/NPM 缓存：通过 Dev Container `mounts` 持久化到命名卷
+
+如果需要清理缓存并做一次完全冷启动，可在宿主机执行：
+- `docker volume rm nextbase-bazel-cache nextbase-bazelisk-cache nextbase-go-mod-cache nextbase-go-build-cache nextbase-cargo-registry-cache nextbase-cargo-git-cache nextbase-nuget-cache nextbase-npm-cache`
+
 示例（Windows PowerShell）:
 ```powershell
 setx DEV_CONTAINER_HTTP_PROXY "http://host.docker.internal:1080"
@@ -41,6 +59,12 @@ setx DEV_CONTAINER_APT_MIRROR "mirrors.tuna.tsinghua.edu.cn"
 ## 目录
 - services: 按 Domain（业务域）组织的可部署服务/应用（示例：hello_world / billing / user）
 - hello_world 目前包含 go、rust、cpp、csharp、typescript 五个示例服务
+- hello_world 语言目录实践：
+   - cpp: `src/` 与 `tests/` 分离
+   - csharp: 源码位于 `src/`，`bin/`/`obj/` 仅为本地产物
+   - typescript: 入口位于 `src/`
+   - go: 入口位于 `cmd/hello/`
+   - rust: 入口位于 `src/`
 - packages: 可复用包
 - tools: 工具与脚本
 - bazel: Bazel 公共宏与规则封装

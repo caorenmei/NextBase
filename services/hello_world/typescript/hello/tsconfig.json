@@ -4,7 +4,8 @@
     "module": "CommonJS",
     "strict": true,
     "esModuleInterop": true,
+    "rootDir": "./src",
     "outDir": "dist"
   },
-  "files": ["main.ts"]
+  "files": ["src/main.ts"]
 }

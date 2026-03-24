@@ -1,6 +1,7 @@
 {
   "$schema": "./devcontainer.schema.json",
   "name": "nextbase-dev",
+  "remoteUser": "vscode",
   "build": {
     "dockerfile": "Dockerfile",
     "args": {
@@ -13,10 +14,35 @@
   "containerEnv": {
     "HTTP_PROXY": "${localEnv:DEV_CONTAINER_HTTP_PROXY}",
     "HTTPS_PROXY": "${localEnv:DEV_CONTAINER_HTTPS_PROXY}",
-    "NO_PROXY": "${localEnv:DEV_CONTAINER_NO_PROXY}"
+    "NO_PROXY": "${localEnv:DEV_CONTAINER_NO_PROXY}",
+    "XDG_CACHE_HOME": "/home/vscode/.cache",
+    "CARGO_HOME": "/home/vscode/.cargo",
+    "NUGET_PACKAGES": "/home/vscode/.nuget/packages",
+    "GOMODCACHE": "/home/vscode/go/pkg/mod",
+    "GOCACHE": "/home/vscode/.cache/go-build"
   },
+  "mounts": [
+    "type=volume,source=nextbase-bazel-cache,target=/home/vscode/.cache/bazel",
+    "type=volume,source=nextbase-bazelisk-cache,target=/home/vscode/.cache/bazelisk",
+    "type=volume,source=nextbase-go-mod-cache,target=/home/vscode/go/pkg/mod",
+    "type=volume,source=nextbase-go-build-cache,target=/home/vscode/.cache/go-build",
+    "type=volume,source=nextbase-cargo-registry-cache,target=/home/vscode/.cargo/registry",
+    "type=volume,source=nextbase-cargo-git-cache,target=/home/vscode/.cargo/git",
+    "type=volume,source=nextbase-nuget-cache,target=/home/vscode/.nuget/packages",
+    "type=volume,source=nextbase-npm-cache,target=/home/vscode/.npm"
+  ],
   "customizations": {
     "vscode": {
+      "settings": {
+        "files.watcherExclude": {
+          "**/.bazel/**": true,
+          "**/bazel-*/**": true
+        },
+        "search.exclude": {
+          "**/.bazel/**": true,
+          "**/bazel-*/**": true
+        }
+      },
       "extensions": [
         "ms-vscode-remote.remote-containers",
         "bazelbuild.vscode-bazel",
@@ -28,5 +54,5 @@
       ]
     }
   },
-  "postCreateCommand": "go version; rustc --version; g++ --version | head -n 1; node --version; tsc --version; dotnet --version; bazel --version"
+  "postCreateCommand": "go version; rustc --version; g++ --version | head -n 1; node --version; tsc --version; dotnet --version; bazel --version; bazel mod graph >/dev/null"
 }
