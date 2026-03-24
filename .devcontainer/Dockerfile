@@ -17,7 +17,7 @@ ENV CARGO_HOME=/usr/local/cargo
 ENV PATH="/usr/local/cargo/bin:/usr/local/go/bin:${PATH}"
 
 RUN set -eux; \
-    if [ -n "${USE_PROXY}" ] && [ -n "${APT_MIRROR}" ]; then \
+    if [ -n "${USE_PROXY:-}" ] && [ -n "${APT_MIRROR:-}" ]; then \
         if [ -f /etc/apt/sources.list.d/ubuntu.sources ]; then \
             sed -i "s|http://archive.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list.d/ubuntu.sources; \
             sed -i "s|http://security.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" /etc/apt/sources.list.d/ubuntu.sources; \
