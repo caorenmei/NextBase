@@ -6,8 +6,8 @@ ARG HTTPS_PROXY
 ARG NO_PROXY
 ARG APT_MIRROR=mirrors.tuna.tsinghua.edu.cn
 ARG GO_DOWNLOAD_URL=https://go.dev/dl/go1.23.6.linux-amd64.tar.gz
-ARG RUSTUP_DIST_SERVER=https://rsproxy.cn
-ARG RUSTUP_UPDATE_ROOT=https://rsproxy.cn/rustup
+ARG RUSTUP_DIST_SERVER=https://static.rust-lang.org
+ARG RUSTUP_UPDATE_ROOT=https://static.rust-lang.org/rustup
 ARG RUST_VERSION=1.83.0
 
 ENV HTTP_PROXY=${HTTP_PROXY}
