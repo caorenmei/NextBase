@@ -93,3 +93,16 @@ RUN --mount=type=cache,target=/tmp/buildkit-downloads,sharing=locked \
     fi; \
     cp "${BAZELISK_BIN}" /usr/local/bin/bazel; \
     chmod +x /usr/local/bin/bazel
+
+RUN --mount=type=cache,target=/tmp/buildkit-downloads,sharing=locked \
+    set -eux; \
+    COPILOT_SCRIPT=/tmp/buildkit-downloads/copilot-install.sh; \
+    if [ ! -s "${COPILOT_SCRIPT}" ]; then \
+        curl -fsSL https://gh.io/copilot-install -o "${COPILOT_SCRIPT}"; \
+    fi; \
+    bash "${COPILOT_SCRIPT}"; \
+    CLAUDE_SCRIPT=/tmp/buildkit-downloads/claude-install.sh; \
+    if [ ! -s "${CLAUDE_SCRIPT}" ]; then \
+        curl -fsSL https://claude.ai/install.sh -o "${CLAUDE_SCRIPT}"; \
+    fi; \
+    bash "${CLAUDE_SCRIPT}"
