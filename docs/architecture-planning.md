@@ -1,8 +1,3 @@
----
-name: architecture-planning
-description: Use when the task involves monorepo topology, directory placement, ownership boundaries, cross-package dependencies, or preventing architectural erosion.
----
-
 # 架构规划
 
 ## 何时使用
@@ -37,9 +32,8 @@ description: Use when the task involves monorepo topology, directory placement, 
 - 若拓扑变更复杂，提供回滚策略。
 
 ## 补充说明
-- 这个技能用于处理 Monorepo 拓扑、目录落点、所有权边界、跨包依赖和架构漂移。
+- 本文档用于处理 Monorepo 拓扑、目录落点、所有权边界、跨包依赖和架构漂移。
 - 新结构优先落在现有边界内，只有当前目录体系无法承载时才考虑扩展顶层目录。
-- 中文说明放在正文里，帮助团队理解；`name` 和 `description` 保持英文，利于工具发现。
 
 ### 服务目录组织（`services`）
 

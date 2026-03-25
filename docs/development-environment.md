@@ -1,8 +1,3 @@
----
-name: development-environment
-description: Use when the task involves reproducible development setup, containerized workflows, cache strategy, build speed, network configuration, or container security hardening.
----
-
 # 开发环境
 
 ## 何时使用
@@ -36,6 +31,5 @@ description: Use when the task involves reproducible development setup, containe
 - 提供已执行验证命令与明确未验证项。
 
 ## 补充说明
-- 这个技能用于处理开发环境一致性、容器化工作流、缓存策略、构建速度和容器安全。
+- 本文档用于处理开发环境一致性、容器化工作流、缓存策略、构建速度和容器安全。
 - 修改环境时，优先保持缓存路径、命名卷和构建入口一致，避免不同开发者得到不同结果。
-- 中文说明放在正文里，便于团队阅读；`name` 和 `description` 继续保留英文，方便各类 Code Agent 发现。
