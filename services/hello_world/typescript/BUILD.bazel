@@ -1,0 +1,25 @@
+genrule(
+    name = "hello",
+    srcs = ["src/main.ts", "tsconfig.json"],
+    outs = ["main.js"],
+    cmd = "BAZEL_BINDIR=. $(execpath @npm_typescript//:tsc) $(execpath src/main.ts) --target ES2020 --module commonjs --strict --esModuleInterop --outDir $(@D)",
+    toolchains = ["@nodejs_toolchains//:resolved_toolchain"],
+    tools = [
+        "@nodejs_toolchains//:resolved_toolchain",
+        "@npm_typescript//:tsc",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "hello_test",
+    srcs = ["smoke_test.sh"],
+    args = [
+        "$(location @nodejs//:node)",
+        "$(location :hello)",
+    ],
+    data = [
+        "@nodejs//:node",
+        ":hello",
+    ],
+)

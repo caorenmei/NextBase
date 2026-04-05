@@ -1,0 +1,14 @@
+load("@rules_dotnet//dotnet:defs.bzl", "csharp_binary", "csharp_test")
+
+csharp_binary(
+    name = "hello",
+    srcs = ["src/Program.cs"],
+    target_frameworks = ["net8.0"],
+    visibility = ["//visibility:public"],
+)
+
+csharp_test(
+    name = "hello_test",
+    srcs = ["src/Program.cs"],
+    target_frameworks = ["net8.0"],
+)
