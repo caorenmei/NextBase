@@ -4,6 +4,7 @@
 - 开发环境配置：[docs/devcontainer.md](docs/devcontainer.md)
 - 工具链管理方案：[docs/toolchains.md](docs/toolchains.md)
 - Monorepo 规范：[docs/monorepo.md](docs/monorepo.md)
+- GitHub CI 规范：[docs/ci.md](docs/ci.md)
 
 ## 核心规则
 ### 工作流
@@ -14,6 +15,7 @@
 5. 输出包含：变更内容、验证结果、风险、后续建议
 6. 先给最小可行方案，再给扩展方案
 7. 明确标注假设与未验证项
+8. 涉及 `.github/workflows/` 时，先核对 `docs/ci.md` 与本地验证路径的一致性
 
 ### Monorepo 约束
 #### 目录结构

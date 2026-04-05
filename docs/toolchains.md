@@ -1,95 +1,94 @@
 # 工具链管理方案
 
-## 核心原则
-1. **版本统一**：所有开发者使用完全相同的工具链版本，避免"本地能跑"问题
-2. **自动管理**：工具链由 Bazel 自动下载、配置和缓存，无需手动安装
-3. **环境无关**：工具链版本与宿主环境和容器环境无关，完全由项目配置控制
-4. **多语言支持**：统一管理所有语言的工具链，包括未来新增的语言
-5. **最小依赖**：容器仅保留 Bazel 运行必需的最小依赖，所有开发工具都由 Bazel 管理
+## 适用范围
+本文档对应以下实际文件：
+- `.bazelversion`
+- `.bazelrc`
+- `MODULE.bazel`
+- `MODULE.bazel.lock`
+- `services/hello_world/*/BUILD.bazel`
 
-## 支持的语言与版本
-所有工具链版本在 `MODULE.bazel` 中统一配置：
+## 当前版本基线
+- Bazel 版本：`.bazelversion` 固定为 `8.1.1`
+- Bzlmod：`.bazelrc` 通过 `common --enable_bzlmod` 开启
+- 锁文件模式：`.bazelrc` 通过 `common --lockfile_mode=error` 强制锁文件一致性
 
-| 语言       | 版本          | 规则集                  | 状态       |
-|------------|---------------|-------------------------|------------|
-| Go         | 1.23.6        | `rules_go`              | ✅ 已配置  |
-| Rust       | 1.83.0        | `rules_rust`            | ✅ 已配置  |
-| C#/.NET    | 8.0.100       | `rules_dotnet`          | ✅ 已配置  |
-| TypeScript | -             | `rules_ts` + `rules_nodejs` | ✅ 已配置 |
-| Node.js    | 18.19.0       | `rules_nodejs`          | ✅ 已配置  |
-| C/C++      | Clang 17.0.6  | `rules_cc` + `llvm_toolchain` | ✅ 已配置 |
+## 当前依赖与工具链
+`MODULE.bazel` 当前声明的核心 rules 与版本如下：
 
-## 使用方法
-### 无需手动安装任何工具
-所有开发工具（go、rustc、dotnet、node、tsc 等）都不需要在本地或容器中手动安装，Bazel 会在首次构建时自动下载对应版本的工具链。
+| 类型 | 组件 | 版本 |
+|---|---|---|
+| Go rules | `rules_go` | `0.49.0` |
+| Gazelle | `gazelle` | `0.36.0` |
+| Rust rules | `rules_rust` | `0.69.0` |
+| .NET rules | `rules_dotnet` | `0.21.5` |
+| TypeScript rules | `aspect_rules_ts` | `3.8.8` |
+| Node.js rules | `rules_nodejs` | `6.7.3` |
+| C/C++ rules | `rules_cc` | `0.2.17` |
+| LLVM toolchain | `toolchains_llvm` | `1.7.0` |
 
-### 构建命令示例（符合 Monorepo 目录约束）
+`MODULE.bazel` 当前注册的语言版本：
+- Go：`1.23.6`
+- Rust：`1.83.0`
+- .NET SDK：`8.0.100`
+- Node.js：`18.19.0`
+- TypeScript：`5.8.3`
+- LLVM/Clang：`17.0.6`
+
+## Bazel 运行规则
+`.bazelrc` 当前强制的关键行为：
+- `--repository_cache=/home/vscode/.cache/bazel/repository`
+- `--experimental_repository_cache_hardlinks`
+- `--output_user_root=/home/vscode/.cache/bazel/output_user_root`
+- `--disk_cache=/home/vscode/.cache/bazel/disk`
+- `--remote_download_toplevel`
+- `--symlink_prefix=.bazel/`
+- `build --keep_going`
+- `test --test_output=errors`
+
+这些路径约定要求 Dev Container 和 GitHub CI 都把缓存挂载到 `/home/vscode` 这一组目录上。
+
+## 当前各语言构建方式
+- Go：`go_binary` 和 `go_test`
+- Rust：`rust_binary` 和 `rust_test`
+- C++：`cc_binary` 和 `cc_test`
+- C#：`csharp_binary` 和 `csharp_test`
+- TypeScript：通过 `genrule` 调用 `@npm_typescript//:tsc` 产出 `main.js`，再用 `sh_test` 做烟测
+
+当前 hello_world 示例入口：
+- `//services/hello_world/go:hello`
+- `//services/hello_world/rust:hello`
+- `//services/hello_world/cpp:hello`
+- `//services/hello_world/csharp:hello`
+- `//services/hello_world/typescript:hello`
+
+## 常用命令
 ```bash
-# 构建所有服务
-bazel build //services/...
-
-# 构建指定业务域下的所有服务
-bazel build //services/user/...
-
-# 构建单个服务
-bazel build //services/user/auth:auth_service
-
-# 构建所有公共库
-bazel build //packages/...
-
-# 构建指定公共库
-bazel build //packages/common/utils:utils_lib
-
-# 构建 TypeScript 前端应用（按业务域划分）
-bazel build //services/admin/frontend:admin_app
-
-# 构建 C/C++ 项目
-bazel build //tools/performance:profiler_bin
-
-# 运行单个服务的测试
-bazel test //services/user/auth:auth_test
-
-# 运行所有测试
+bazel build //...
 bazel test //...
+bazel run //services/hello_world/go:hello
+bazel run //services/hello_world/rust:hello
+bazel run //services/hello_world/cpp:hello
+bazel run //services/hello_world/csharp:hello
+bazel run //services/hello_world/typescript:hello
 ```
 
-### 查看工具链版本
+查看工具链版本：
+
 ```bash
-# 查看 Go 版本
-bazel run @go_sdk//:go version
-
-# 查看 Rust 版本
+bazel run @go_sdk//:go -- version
 bazel run @rust_toolchains//:rustc -- --version
-
-# 查看 .NET 版本
 bazel run @dotnet_toolchains//:dotnet -- --version
-
-# 查看 Node.js 版本
 bazel run @nodejs_toolchains//:node -- --version
 ```
 
-## 版本更新流程
-如需更新工具链版本，只需修改 `MODULE.bazel` 中的对应版本号即可：
-```python
-# 例如更新 Go 版本到 1.24.0
-go_sdk.download(version = "1.24.0")
-```
-提交变更后，所有开发者下次执行 Bazel 命令时会自动下载新版本。
+## 变更规则
+- 修改 `MODULE.bazel` 或 `MODULE.bazel.lock` 后，必须更新本文档中的版本表和 README 中的相关说明
+- 修改 `.bazelrc` 的缓存路径或下载策略后，必须同步更新 `docs/devcontainer.md` 和 `docs/ci.md`
+- 新增语言时，优先使用 Bazel 官方或主流规则集，并补齐示例目标、验证命令和文档
 
 ## 缓存策略
-- 工具链下载后会自动缓存在 Bazel 的本地缓存目录中，默认路径：`~/.cache/bazelisk/downloads/`
-- 容器环境中通过卷挂载持久化缓存，避免重复下载
-- 多项目可以共享同一版本的工具链缓存
-
-## 新增语言支持
-如需新增其他语言的工具链支持，只需：
-1. 在 `MODULE.bazel` 中添加对应语言的 rules 依赖
-2. 配置对应语言的工具链版本
-3. 在本文档中更新支持的语言列表
-
-## 优势
-- ✅ 一致性：所有开发者、CI 环境使用完全相同的工具链版本
-- ✅ 无需配置：开箱即用，不需要开发者手动安装任何开发工具
-- ✅ 版本隔离：不同项目可以使用不同版本的工具链，互不影响
-- ✅ 易于升级：统一修改配置即可完成全团队的工具链版本升级
-- ✅ 安全：工具链从官方源下载，校验和验证，避免供应链风险
+- Bazel 外部仓库和构建缓存统一落在 `/home/vscode/.cache/bazel`
+- Bazelisk 下载缓存位于 `/home/vscode/.cache/bazelisk`
+- Dev Container 通过命名卷持久化这些目录
+- GitHub Actions 通过 runner 目录挂载和 `actions/cache` 持久化这些目录

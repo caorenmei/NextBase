@@ -10,17 +10,13 @@ ENV PATH="/usr/local/bin:${PATH}"
 
 # 配置APT源和代理
 RUN set -eux; \
-    if [ -n "${USE_PROXY:-}" ] && [ -n "${APT_MIRROR:-}" ]; then \
+    if [ -n "${APT_MIRROR:-}" ]; then \
         SOURCES_FILE="/etc/apt/sources.list"; \
         [ -f /etc/apt/sources.list.d/ubuntu.sources ] && SOURCES_FILE="/etc/apt/sources.list.d/ubuntu.sources"; \
         sed -i "s|http://archive.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" ${SOURCES_FILE}; \
         sed -i "s|http://security.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" ${SOURCES_FILE}; \
         sed -i "s|https://archive.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" ${SOURCES_FILE}; \
         sed -i "s|https://security.ubuntu.com/ubuntu/|https://${APT_MIRROR}/ubuntu/|g" ${SOURCES_FILE}; \
-        printf \
-            'Acquire::http::Proxy::%s DIRECT;\n' \
-            'Acquire::https::Proxy::%s DIRECT;\n' \
-            "${APT_MIRROR}" "${APT_MIRROR}" > /etc/apt/apt.conf.d/99no-proxy; \
     fi
 
 # 安装系统依赖和基础工具

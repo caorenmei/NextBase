@@ -3,6 +3,7 @@
 ## 设计目标
 - 可复现：固定 Bazel 版本与 Bzlmod 锁文件，默认严格锁定依赖解析
 - 快速启动：Dev Container 使用命名卷持久化 Bazel/Go/Rust/NuGet/NPM 缓存，减少重建后的重复下载
+- CI 一致：GitHub Actions 复用 Dev Container 构建路径，在无代理前提下使用缓存加速
 - 编辑器友好：默认隐藏 Bazel 软链接与构建产物目录，降低索引噪声
 - 团队友好：共享最小 VS Code 配置，避免个人本地配置污染仓库
 - 安全：默认仅提交源码与资源文件，构建产物和本地临时文件不入库
@@ -10,11 +11,11 @@
 ## 快速开始
 1. 使用 Dev Container 打开仓库
 2. 执行：
-   - bazel run //services/hello_world/go/hello:hello
-   - bazel run //services/hello_world/rust/hello:hello
-   - bazel run //services/hello_world/cpp/hello:hello
-   - bazel run //services/hello_world/csharp/hello:hello
-   - bazel run //services/hello_world/typescript/hello:hello
+   - bazel run //services/hello_world/go:hello
+   - bazel run //services/hello_world/rust:hello
+   - bazel run //services/hello_world/cpp:hello
+   - bazel run //services/hello_world/csharp:hello
+   - bazel run //services/hello_world/typescript:hello
    - bazel test //...
 
 首次冷启动会下载依赖；后续重建容器时将复用命名卷缓存，速度显著提升。
@@ -23,15 +24,17 @@
 - 不依赖本机 Go/Rust/C++/Node.js/.NET/Bazel 安装
 - 使用脚本在 Dev Container 镜像中执行：
    - powershell -ExecutionPolicy Bypass -File tools/scripts/verify.ps1
+- GitHub CI 默认不使用代理，直接基于公开网络拉取依赖并依赖缓存加速
 - 中国大陆网络建议：
-   - 默认使用清华 Ubuntu 镜像
-   - 默认尝试代理 http://host.docker.internal:1080
+   - 可选使用清华 Ubuntu 镜像
+   - 代理为可选项，不再默认开启
    - 可显式指定：
      - powershell -ExecutionPolicy Bypass -File tools/scripts/verify.ps1 -ProxyUrl "http://host.docker.internal:1080" -AptMirror "mirrors.tuna.tsinghua.edu.cn"
 
 ## Dev Container 环境变量
 在使用 Dev Container 启动项目时，可以通过以下环境变量配置代理和 APT 源（可在宿主或 VS Code 启动前导出）：
 
+- **DEV_CONTAINER_USE_PROXY**: 设为任意非空值时才生成 `.devcontainer/proxy.env`
 - **DEV_CONTAINER_HTTP_PROXY**: http://host.docker.internal:1080
 - **DEV_CONTAINER_HTTPS_PROXY**: http://host.docker.internal:1080
 - **DEV_CONTAINER_NO_PROXY**: localhost,127.0.0.1,host.docker.internal
@@ -77,19 +80,14 @@ setx DEV_CONTAINER_APT_MIRROR "mirrors.tuna.tsinghua.edu.cn"
 - bazel: Bazel 公共宏与规则封装
 - agent: Code Agent 统一规则
 
-## Code Agent Domain Docs
-- 领域文档放置于 `docs/`，用于把仓库实践拆成按需加载的任务域知识，而不是把所有规则都堆进全局说明。
-- `docs/development-environment.md`：处理 Dev Container、一致性、缓存加速、代理镜像与容器安全。
-- `docs/dependency-build.md`：处理 `BUILD.bazel`、`MODULE.bazel`、依赖图谱正确性、目标粒度与缓存命中率。
-- `docs/architecture-planning.md`：处理目录落点、跨目录依赖、服务与包边界，防止 Monorepo 演变成“大泥潭”。
-- 这些领域文档应与 `agent/agent-core.md` 配合使用：全局规则留在 core，任务域知识下沉到对应文档。
+## 规则与文档映射
+- `agent/agent-core.md`：Agent 工作流、最小改动原则、Monorepo 基础约束。
+- `docs/devcontainer.md`：`.devcontainer/`、容器启动、代理开关、缓存卷、编辑器排噪。
+- `docs/toolchains.md`：`.bazelversion`、`MODULE.bazel`、`.bazelrc`、多语言工具链与 Bazel 命令。
+- `docs/monorepo.md`：目录落点、服务示例布局、依赖边界、命名与提交流程。
+- `docs/ci.md`：`.github/workflows/ci.yml` 的执行路径、缓存策略与变更约束。
 
-### 何时让 Agent 使用对应文档
-- 涉及 `.devcontainer/`、`.bazelrc`、代理、缓存、镜像层、安全收敛时，优先使用 `docs/development-environment.md`。
-- 涉及 `BUILD.bazel`、`MODULE.bazel`、锁文件、构建性能与测试命令时，优先使用 `docs/dependency-build.md`。
-- 涉及新目录、新服务、新共享库、边界调整或跨目录依赖治理时，优先使用 `docs/architecture-planning.md`。
-
-### 文档使用原则
-- 先读对应文档，再形成最小变更方案。
-- 文档只提供任务域流程与检查清单，不替代实际验证。
-- 涉及结构调整时，同时更新 BUILD、模块路径、CI/部署与文档。
+## 文档同步约定
+- 修改 `.devcontainer/`、`.bazelrc`、`.bazelversion`、`MODULE.bazel`、`.github/workflows/ci.yml`、`.editorconfig`、`.gitignore` 时，必须同步更新对应文档。
+- README 只保留总览和入口；具体规则以 `agent/agent-core.md` 与 `docs/` 下对应文档为准。
+- 文档描述必须以仓库当前实现为准，不保留未落地的“规划态规则”。

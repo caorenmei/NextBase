@@ -1,83 +1,81 @@
 # Monorepo 规范
 
-## 目录结构
-本项目采用标准 Monorepo 结构，分为三个顶层目录：
+## 适用范围
+本文档描述当前仓库已经落地的结构规则，不描述尚未实现的模板化约束。
 
+## 当前目录结构
+当前顶层目录和职责如下：
+
+```text
+.
+├── agent/        # Agent 统一规则入口
+├── bazel/        # Bazel 公共宏与规则封装
+├── docs/         # 仓库规则与操作文档
+├── packages/     # 预留给可复用包，当前语言示例尚未落入此目录
+├── services/     # 可部署服务示例
+└── tools/        # 验证脚本与工程工具
 ```
-<root>
-├── services/       # 可部署服务/应用
-├── packages/       # 公共复用库
-└── tools/          # 工程工具与脚本
-```
 
-### 1. services/ 目录
-按业务域组织可独立部署的服务/应用：
-- 格式：`services/<business-domain>/<service-name>/`
-- 每个服务必须包含：`src/`、`tests/`、`BUILD`、`README.md`
-- 示例：
-  - `services/user/auth/` - 用户认证服务
-  - `services/billing/invoice/` - 账单服务
-  - `services/admin/frontend/` - 管理后台前端应用（按业务域划分，admin域下包含前端服务）
+根目录同时保留以下关键文件：
+- `.bazelrc`、`.bazelversion`、`MODULE.bazel`、`MODULE.bazel.lock`：构建系统配置
+- `.editorconfig`、`.gitignore`、`.vscode/settings.json`：仓库级编辑和忽略规则
+- `AGENTS.md`、`CLAUDE.md`、`copilot-instructions.md`：Agent 入口与补充说明
+- `.github/workflows/ci.yml`：GitHub CI 执行规则
 
-### 2. packages/ 目录
-跨域公共复用库，被多个服务依赖：
-- 格式：`packages/<library-name>/`
-- 库必须具有明确的边界和独立的版本
-- 示例：
-  - `packages/common/utils/` - 通用工具库
-  - `packages/db/orm/` - 数据库 ORM 封装
-  - `packages/api/sdk/` - 对外 API SDK
+## services 目录规则
+### 当前实际布局
+当前仅落地一个业务域 `hello_world`，其下按语言拆分示例服务：
+- `services/hello_world/go`
+- `services/hello_world/rust`
+- `services/hello_world/cpp`
+- `services/hello_world/csharp`
+- `services/hello_world/typescript`
 
-### 3. tools/ 目录
-工程工具、脚本、CI 相关代码：
-- 格式：`tools/<tool-name>/`
-- 不得包含业务逻辑
-- 示例：
-  - `tools/build-rules/` - 自定义 Bazel 构建规则
-  - `tools/lint/` - 代码检查工具配置
-  - `tools/release/` - 发布脚本
+### 各语言目录约定
+- Go：入口位于 `cmd/hello/main.go`，测试位于 `cmd/hello/main_test.go`
+- Rust：入口位于 `src/main.rs`，测试位于 `src/main_test.rs`
+- C++：源码位于 `src/main.cc`，测试位于 `tests/main_test.cc`
+- C#：源码位于 `src/Program.cs`，`bin/` 和 `obj/` 视为本地产物，不入库
+- TypeScript：源码位于 `src/main.ts`，通过 `tsconfig.json` 和 Bazel `genrule` 产出 `main.js`
 
-## 命名规范
-- 目录和文件名使用小写字母，单词间用下划线分隔（snake_case）
-- 服务和库名称应清晰描述其职责，避免模糊命名
-- 避免使用缩写，除非是行业通用缩写（如 API、SDK）
+### BUILD 文件规则
+- 每个语言示例目录使用 `BUILD.bazel`
+- 当前可执行目标统一命名为 `hello`
+- 当前测试目标统一命名为 `hello_test`
+- Bazel 标签必须使用仓库相对标签，例如 `//services/hello_world/go:hello`
+
+## packages 与 tools
+- `packages/` 当前保留为空目录，用于后续沉淀跨域复用库；新增内容前需要先确认确实存在复用场景
+- `tools/scripts/verify.ps1` 是当前仓库的容器化验证入口
+- `bazel/` 用于存放后续需要抽取的公共规则；当前 hello_world 示例直接使用官方 rules
 
 ## 依赖规则
-### 基本原则
-- **依赖方向唯一**：services → packages → tools，禁止反向依赖
-- **跨域依赖必须显式声明**：服务不能直接依赖其他服务的内部代码，必须通过公共包或 API 调用
-- **最小依赖原则**：只依赖实际需要的包，避免引入不必要的依赖
-- **禁止循环依赖**：A 依赖 B，B 不能再依赖 A（直接或间接）
+这些规则来自 `agent/agent-core.md`，也是当前仓库必须遵守的基础约束：
+- 优先显式直接依赖，避免过宽聚合依赖
+- 跨目录依赖需说明原因
+- 新增依赖优先通过仓库统一构建系统管理
+- 服务跨域依赖通过公共包或 API 暴露，避免反向依赖
 
-### 允许的依赖
-✅ `services/<domain>/<service>` → `packages/*`
-✅ `services/<domain>/<service>` → `tools/*`
-✅ `packages/<lib>` → `packages/*`
-✅ `packages/<lib>` → `tools/*`
-✅ `tools/*` → `tools/*`
+当前仓库还没有复杂跨目录代码依赖，因此文档不额外引入未落地的依赖分层模型。
 
-### 禁止的依赖
-❌ `services/*` → `services/*`（服务间不能直接依赖代码，必须通过 API 或公共包）
-❌ `packages/*` → `services/*`（公共包不能依赖服务实现）
-❌ `tools/*` → `services/*`、`tools/*` → `packages/*`（工具不能依赖业务代码）
+## 提交与忽略规则
+- 构建产物、IDE 本地文件、临时文件必须通过 `.gitignore` 排除，不提交到版本库
+- `.gitignore` 当前重点忽略：`.bazel/`、`bazel-*`、`bin/`、`obj/`、`dist/`、`.nuget/`、`.npm/`、`.pnpm-store/`、`.devcontainer/proxy.env`
+- `.vscode/settings.json` 默认隐藏 Bazel 产物目录和常见构建输出目录
+- `.editorconfig` 统一使用 `utf-8` 和 `lf`；Go 文件使用 tab，其余代码文件使用去尾空格规则
 
-## 构建规则
-- 所有可构建目标必须在对应目录下的 `BUILD` 文件中声明
-- 目标命名：`{name}_{type}`，如 `auth_service_bin`、`user_lib`、`auth_test`
-- 测试目标必须包含 `_test` 后缀
-- 禁止使用绝对路径引用，必须使用 Bazel 标签格式：`//path/to/package:target`
+## 变更规则
+- 新增顶层目录前，优先评估能否落在现有 `services/`、`packages/`、`tools/`、`docs/`、`bazel/`、`agent/` 下
+- 调整服务布局时，需要同步更新 `BUILD.bazel`、README、相关文档和 CI 命令
+- 如果把共享逻辑从 `services/` 抽出到 `packages/`，必须同时补齐依赖标签和验证命令
 
-## 版本管理
-- 公共包（packages/）使用语义化版本号
-- 服务版本与发布版本保持一致
-- 所有依赖版本在 `MODULE.bazel` 中统一管理
-
-## 目录新增规则
-- 优先使用现有目录结构，禁止随意新增顶层目录
-- 新增业务域需要在 `services/<domain>/` 下创建，需包含 `README.md` 和 `OWNERS` 文件
-- 新增公共包需要评估是否真的需要多服务复用，避免过度抽象
-
-## 验证规范
-- 提交代码前必须运行受影响目标的测试：`bazel test //path/to/target/...`
-- CI 会自动运行全量测试，确保所有目标构建和测试通过
-- 修改公共包需要运行所有依赖该包的服务的测试
+## 常用验证
+```bash
+bazel build //...
+bazel test //...
+bazel run //services/hello_world/go:hello
+bazel run //services/hello_world/rust:hello
+bazel run //services/hello_world/cpp:hello
+bazel run //services/hello_world/csharp:hello
+bazel run //services/hello_world/typescript:hello
+```
