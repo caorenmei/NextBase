@@ -53,9 +53,10 @@
         "rust-lang.rust-analyzer",
         "ms-dotnettools.csharp",
         "github.copilot",
-        "github.copilot-chat"
+        "github.copilot-chat",
+        "anthropic.claude-code"
       ]
     }
   },
-  "postCreateCommand": "sudo install -d -o vscode -g vscode /home/vscode/.cache /home/vscode/.cache/bazel /home/vscode/.cache/bazelisk /home/vscode/go /home/vscode/go/pkg /home/vscode/go/pkg/mod /home/vscode/.cargo /home/vscode/.cargo/registry /home/vscode/.cargo/git /home/vscode/.nuget /home/vscode/.nuget/packages /home/vscode/.npm && sudo chown -R vscode:vscode /home/vscode/.cache /home/vscode/go /home/vscode/.cargo /home/vscode/.nuget /home/vscode/.npm && go version; rustc --version; g++ --version | head -n 1; node --version; tsc --version; dotnet --version; bazel --version; bazel mod graph --lockfile_mode=off >/dev/null"
+  "postCreateCommand": "g++ --version | head -n 1; bazel --version; gh --version"
 }
