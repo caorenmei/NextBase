@@ -11,11 +11,7 @@
 ## 快速开始
 1. 使用 Dev Container 打开仓库
 2. 执行：
-   - bazel run //services/hello_world/go:hello
-   - bazel run //services/hello_world/rust:hello
-   - bazel run //services/hello_world/cpp:hello
-   - bazel run //services/hello_world/csharp:hello
-   - bazel run //services/hello_world/typescript:hello
+   - bazel build //...
    - bazel test //...
 
 首次冷启动会下载依赖；后续重建容器时将复用命名卷缓存，速度显著提升。

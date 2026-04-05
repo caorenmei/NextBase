@@ -23,11 +23,6 @@ CI 的 `container-verify` job 采用如下顺序：
 5. 在容器内执行：
    - `bazel build //...`
    - `bazel test //...`
-   - `bazel run //services/hello_world/go:hello`
-   - `bazel run //services/hello_world/rust:hello`
-   - `bazel run //services/hello_world/cpp:hello`
-   - `bazel run //services/hello_world/csharp:hello`
-   - `bazel run //services/hello_world/typescript:hello`
 
 ## 网络与代理规则
 - GitHub Actions 默认不使用代理

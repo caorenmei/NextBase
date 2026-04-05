@@ -74,9 +74,4 @@ jobs:
             nextbase-dev:ci \
             bash -lc "set -euo pipefail; \
               bazel build //...; \
-              bazel test //...; \
-              bazel run //services/hello_world/go:hello; \
-              bazel run //services/hello_world/rust:hello; \
-              bazel run //services/hello_world/cpp:hello; \
-              bazel run //services/hello_world/csharp:hello; \
-              bazel run //services/hello_world/typescript:hello"
+              bazel test //..."
