@@ -1,13 +1,21 @@
 common --enable_bzlmod
 common --lockfile_mode=error
-common --repository_cache=/home/vscode/.cache/bazel/repository
+common --repository_cache=~/.cache/bazel/repository
 common --experimental_repository_cache_hardlinks
+common --repo_env=HTTP_PROXY
+common --repo_env=HTTPS_PROXY
+common --repo_env=http_proxy
+common --repo_env=https_proxy
+common --action_env=HTTP_PROXY
+common --action_env=HTTPS_PROXY
+common --action_env=http_proxy
+common --action_env=https_proxy
 
-startup --output_user_root=/home/vscode/.cache/bazel/output_user_root
+startup --output_user_root=~/.cache/bazel/output_user_root
 # 移除 JDK 废弃参数警告
 startup --host_jvm_args=-Xverify:remote
 
-build --disk_cache=/home/vscode/.cache/bazel/disk
+build --disk_cache=~/.cache/bazel/disk
 build --remote_download_toplevel
 build --symlink_prefix=.bazel/
 build --keep_going

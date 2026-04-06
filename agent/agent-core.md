@@ -16,6 +16,9 @@
 6. 先给最小可行方案，再给扩展方案
 7. 明确标注假设与未验证项
 8. 涉及 `.github/workflows/` 时，先核对 `docs/ci.md` 与本地验证路径的一致性
+9. 访问受限外网时，优先使用宿主代理环境变量 `HOST_HTTP_PROXY` 与 `HOST_HTTPS_PROXY`，并映射为 `HTTP_PROXY`/`HTTPS_PROXY`（含小写变量）后再执行 Bazel 命令
+10. 构建、运行、测试优先使用 Bazel 原生目标与规则，避免新增或依赖 `sh`/`ps1` 等非 Bazel 原生脚本作为主流程
+11. 在必须使用脚本且允许替换的场景下，优先使用 Python 脚本替代 `sh`/`psl` 脚本以提升跨平台一致性
 
 ### Monorepo 约束
 #### 目录结构

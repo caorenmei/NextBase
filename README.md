@@ -13,19 +13,21 @@
 2. 执行：
    - bazel build //...
    - bazel test //...
+   - bazel run //services/hello_world/csharp:hello
+   - bazel run //services/hello_world/typescript:hello
 
 首次冷启动会下载依赖；后续重建容器时将复用命名卷缓存，速度显著提升。
 
 ## 验证方式（容器优先）
 - 不依赖本机 Go/Rust/C++/Node.js/.NET/Bazel 安装
-- 使用脚本在 Dev Container 镜像中执行：
-   - powershell -ExecutionPolicy Bypass -File tools/scripts/verify.ps1
+- 使用 Bazel 原生命令作为首选：
+   - bazel build //...
+   - bazel test //...
 - GitHub CI 默认不使用代理，直接基于公开网络拉取依赖并依赖缓存加速
 - 中国大陆网络建议：
-   - 可选使用清华 Ubuntu 镜像
-   - 代理为可选项，不再默认开启
-   - 可显式指定：
-     - powershell -ExecutionPolicy Bypass -File tools/scripts/verify.ps1 -ProxyUrl "http://host.docker.internal:1080" -AptMirror "mirrors.tuna.tsinghua.edu.cn"
+   - 代理为可选项，建议优先使用宿主环境变量 `HOST_HTTP_PROXY` 与 `HOST_HTTPS_PROXY`
+   - 执行 Bazel 前可显式映射：
+     - export HTTP_PROXY="$HOST_HTTP_PROXY" HTTPS_PROXY="$HOST_HTTPS_PROXY" http_proxy="$HOST_HTTP_PROXY" https_proxy="$HOST_HTTPS_PROXY"
 
 ## Dev Container 环境变量
 在使用 Dev Container 启动项目时，可以通过以下环境变量配置代理和 APT 源（可在宿主或 VS Code 启动前导出）：
@@ -35,6 +37,10 @@
 - **DEV_CONTAINER_HTTPS_PROXY**: http://host.docker.internal:1080
 - **DEV_CONTAINER_NO_PROXY**: localhost,127.0.0.1,host.docker.internal
 - **DEV_CONTAINER_APT_MIRROR**: mirrors.tuna.tsinghua.edu.cn
+
+在容器外直接执行 Bazel 命令时，也支持：
+- **HOST_HTTP_PROXY**
+- **HOST_HTTPS_PROXY**
 
 ## 缓存与重建加速
 - Bazel 仓库缓存：`$HOME/.cache/bazel/repository`
