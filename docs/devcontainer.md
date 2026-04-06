@@ -34,9 +34,11 @@
 - `/home/vscode/.npm`
 
 `.bazelrc` 进一步固定了 Bazel 使用的关键路径：
-- `--repository_cache=/home/vscode/.cache/bazel/repository`
-- `--disk_cache=/home/vscode/.cache/bazel/disk`
-- `--output_user_root=/home/vscode/.cache/bazel/output_user_root`
+- `--repository_cache=~/.cache/bazel/repository`
+- `--disk_cache=~/.cache/bazel/disk`
+- `--output_user_root=~/.cache/bazel/output_user_root`
+
+说明：`devcontainer.json` 的 `mounts.target` 仍使用容器内绝对路径（如 `/home/vscode/.cache/bazel`），这是 Docker 挂载语义要求（目标必须是容器内绝对路径），不能改为相对路径。
 
 ### 编辑器排噪
 `devcontainer.json` 与 `.vscode/settings.json` 共同约束了 VS Code 的排噪行为：
@@ -53,7 +55,7 @@
 ## 变更规则
 - 修改 `.devcontainer/Dockerfile` 时，优先保持“最小预装工具”原则，不要把语言工具链重新装回镜像
 - 修改缓存挂载时，要同时检查 `.bazelrc`、GitHub Actions 缓存挂载和 README 是否需要同步
-- 修改代理逻辑时，要同时检查 `generate-proxy-env.sh`、`devcontainer.json`、`tools/scripts/verify.ps1` 和 README
+- 修改代理逻辑时，要同时检查 `generate-proxy-env.sh`、`devcontainer.json`、`.bazelrc` 和 README
 - 变更 VS Code 排噪规则时，要同步核对 `devcontainer.json` 与 `.vscode/settings.json`
 
 ## 常用验证
@@ -63,14 +65,11 @@ bazel build //...
 bazel test //...
 ```
 
-Windows PowerShell 容器验证：
+访问受限外网时，可使用宿主代理变量映射后再执行 Bazel：
 
-```powershell
-powershell -ExecutionPolicy Bypass -File tools/scripts/verify.ps1
-```
-
-使用代理和镜像源时：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File tools/scripts/verify.ps1 -ProxyUrl "http://host.docker.internal:1080" -AptMirror "mirrors.tuna.tsinghua.edu.cn"
+```bash
+export HTTP_PROXY="$HOST_HTTP_PROXY" HTTPS_PROXY="$HOST_HTTPS_PROXY"
+export http_proxy="$HOST_HTTP_PROXY" https_proxy="$HOST_HTTPS_PROXY"
+bazel build //...
+bazel test //...
 ```

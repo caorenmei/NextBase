@@ -5,7 +5,6 @@
 - `.github/workflows/ci.yml`
 - `.devcontainer/Dockerfile`
 - `.bazelrc`
-- `tools/scripts/verify.ps1`
 
 ## 当前 CI 目标
 GitHub Actions 只做一件事：在与 Dev Container 尽量一致的容器环境中完成全量构建、测试和 hello_world 烟测。
@@ -37,7 +36,7 @@ CI 的 `container-verify` job 采用如下顺序：
 
 ### Bazel 运行时缓存
 - 通过 `actions/cache` 持久化 runner 上的缓存目录
-- 再把这些目录 bind mount 到容器内的 `/home/vscode` 缓存路径
+- 再把这些目录 bind mount 到容器内缓存路径（目标必须是容器内绝对路径）
 - 当前缓存目录与 `devcontainer.json` 保持一致：
   - `/home/vscode/.cache/bazel`
   - `/home/vscode/.cache/bazelisk`
@@ -48,6 +47,8 @@ CI 的 `container-verify` job 采用如下顺序：
   - `/home/vscode/.nuget/packages`
   - `/home/vscode/.npm`
 
+说明：`.bazelrc` 已改为 `~/.cache/...` 的用户目录相对路径；CI 容器挂载点继续使用绝对路径是 Docker 的语义限制，而非仓库约束。
+
 ## 变更规则
 - 修改 `.github/workflows/ci.yml` 时，优先保持“容器内验证”这一主路径，不要拆成与 Dev Container 完全不同的另一套安装脚本
 - 修改 `.bazelrc` 缓存路径时，必须同步调整 CI 的挂载目录
@@ -55,5 +56,5 @@ CI 的 `container-verify` job 采用如下顺序：
 - 增加新的服务或语言示例时，需要决定是否纳入烟测列表；如果纳入，README 和本文档都要同步更新
 
 ## 与本地验证的关系
-- 本地优先使用 `tools/scripts/verify.ps1`
-- CI 与本地都走容器化验证，但本地脚本保留可选代理和镜像源参数，CI 不保留
+- 本地优先使用 Bazel 原生命令（`bazel build //...`、`bazel test //...`）
+- CI 与本地都走 Bazel 原生命令链路；CI 默认不使用代理

@@ -46,7 +46,7 @@
 
 ## packages 与 tools
 - `packages/` 当前保留为空目录，用于后续沉淀跨域复用库；新增内容前需要先确认确实存在复用场景
-- `tools/scripts/verify.ps1` 是当前仓库的容器化验证入口
+- 本仓库构建/测试/运行统一使用 Bazel 原生命令与 Bazel 目标，不以 `sh`/`ps1` 包装脚本作为主流程
 - `bazel/` 用于存放后续需要抽取的公共规则；当前 hello_world 示例直接使用官方 rules
 
 ## 依赖规则

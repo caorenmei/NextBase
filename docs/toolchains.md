@@ -24,6 +24,7 @@
 | .NET rules | `rules_dotnet` | `0.21.5` |
 | TypeScript rules | `aspect_rules_ts` | `3.8.8` |
 | Node.js rules | `rules_nodejs` | `6.7.3` |
+| Python rules | `rules_python` | `0.40.0` |
 | C/C++ rules | `rules_cc` | `0.2.17` |
 | LLVM toolchain | `toolchains_llvm` | `1.7.0` |
 
@@ -33,27 +34,30 @@
 - .NET SDK：`8.0.100`
 - Node.js：`18.19.0`
 - TypeScript：`5.8.3`
+- Python：`3.11`
 - LLVM/Clang：`17.0.6`
 
 ## Bazel 运行规则
 `.bazelrc` 当前强制的关键行为：
-- `--repository_cache=/home/vscode/.cache/bazel/repository`
+- `--repository_cache=~/.cache/bazel/repository`
 - `--experimental_repository_cache_hardlinks`
-- `--output_user_root=/home/vscode/.cache/bazel/output_user_root`
-- `--disk_cache=/home/vscode/.cache/bazel/disk`
+- `--output_user_root=~/.cache/bazel/output_user_root`
+- `--disk_cache=~/.cache/bazel/disk`
 - `--remote_download_toplevel`
 - `--symlink_prefix=.bazel/`
 - `build --keep_going`
 - `test --test_output=errors`
 
-这些路径约定要求 Dev Container 和 GitHub CI 都把缓存挂载到 `/home/vscode` 这一组目录上。
+Node 工具链当前通过 `@nodejs_toolchains//:all` 注册，避免平台硬编码（例如仅 Linux）。
+
+这些路径在 Bazel 配置中改为用户目录相对形式（`~/.cache/...`）；但 Dev Container 和 GitHub CI 的容器挂载目标仍需使用容器内绝对路径（Docker 语义要求）。
 
 ## 当前各语言构建方式
 - Go：`go_binary` 和 `go_test`
 - Rust：`rust_binary` 和 `rust_test`
 - C++：`cc_binary` 和 `cc_test`
 - C#：`csharp_binary` 和 `csharp_test`
-- TypeScript：通过 `genrule` 调用 `@npm_typescript//:tsc` 产出 `main.js`，再用 `sh_test` 做烟测
+- TypeScript：通过 `genrule` 调用 `@npm_typescript//:tsc` 产出 `main.js`，再用 `py_test`（Python 脚本）做烟测
 
 当前 hello_world 示例入口：
 - `//services/hello_world/go:hello`
@@ -80,6 +84,7 @@ bazel run @go_sdk//:go -- version
 bazel run @rust_toolchains//:rustc -- --version
 bazel run @dotnet_toolchains//:dotnet -- --version
 bazel run @nodejs_toolchains//:node -- --version
+bazel run @python_3_11//:python -- --version
 ```
 
 ## 变更规则
@@ -88,7 +93,7 @@ bazel run @nodejs_toolchains//:node -- --version
 - 新增语言时，优先使用 Bazel 官方或主流规则集，并补齐示例目标、验证命令和文档
 
 ## 缓存策略
-- Bazel 外部仓库和构建缓存统一落在 `/home/vscode/.cache/bazel`
-- Bazelisk 下载缓存位于 `/home/vscode/.cache/bazelisk`
+- Bazel 外部仓库和构建缓存统一落在 `~/.cache/bazel`
+- Bazelisk 下载缓存位于 `~/.cache/bazelisk`
 - Dev Container 通过命名卷持久化这些目录
 - GitHub Actions 通过 runner 目录挂载和 `actions/cache` 持久化这些目录
